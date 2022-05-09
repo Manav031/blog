@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CreateCategory</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+    <form action="" method="POST">
+        {% csrf_token %}
+    
+        {% if formaction == 'create-category' %}
+            <h1>CreateCategory</h1>
+            <input type="hidden" name="action" value="{{ action }}">
+            <label for="category">Category</label>
+            {{form.category}}
+            <button type="submit">Create</button>
+        {% else %}
+            <h1>UpdateCategory</h1>
+            <input type="hidden" name="action" value="{{ action }}">
+            <input type="hidden" name="record" value="{{ record }}">
+            <label for="category">Category</label>
+            {{form.category}}
+            <button type="submit">Update</button>
+    
+        {% endif %}
+        <p id="error"></p>
+    </form>
+    <script>
+        $('input[type="text"]').on('focusout', function() {
+            var data = $('input[type="text"]').val();
+            console.log(data);
+            $.ajax({
+                url:'{% url "checkcategory" %}',
+                type:'get',
+                data:"data="+data,
+                success:function(response) {
+                    console.log(response['error']);
+                    console.log(response['success']);
+                    if(response['error']) {
+                        $('#error').html(response['error']);
+                    }
+                    else {
+                        $('#error').html(response['success']);
+                    }
+                }
+            })
+        })
+    </script>
+</body>
+</html>
+
+
+
+<script>
+
+</script>

@@ -1,0 +1,214 @@
+{% load static %} {% load social_share %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="{% static 'js/infinite-scroll.pkgd.js' %}"></script>
+    <style>
+      .loader-ellips {
+        font-size: 20px; /* change size here */
+        position: relative;
+        width: 4em;
+        height: 1em;
+        margin: 10px auto;
+      }
+
+      .loader-ellips__dot {
+        display: block;
+        width: 1em;
+        height: 1em;
+        border-radius: 0.5em;
+        background: #555; /* change color here */
+        position: absolute;
+        animation-duration: 0.5s;
+        animation-timing-function: ease;
+        animation-iteration-count: infinite;
+      }
+
+      .loader-ellips__dot:nth-child(1),
+      .loader-ellips__dot:nth-child(2) {
+        left: 0;
+      }
+      .loader-ellips__dot:nth-child(3) {
+        left: 1.5em;
+      }
+      .loader-ellips__dot:nth-child(4) {
+        left: 3em;
+      }
+
+      @keyframes reveal {
+        from {
+          transform: scale(0.001);
+        }
+        to {
+          transform: scale(1);
+        }
+      }
+
+      @keyframes slide {
+        to {
+          transform: translateX(1.5em);
+        }
+      }
+
+      .loader-ellips__dot:nth-child(1) {
+        animation-name: reveal;
+      }
+
+      .loader-ellips__dot:nth-child(2),
+      .loader-ellips__dot:nth-child(3) {
+        animation-name: slide;
+      }
+
+      .loader-ellips__dot:nth-child(4) {
+        animation-name: reveal;
+        animation-direction: reverse;
+      }
+
+      .page-load-status {
+        display: none; /* hidden by default */
+        padding-top: 20px;
+      }
+
+      .infinte-container::-webkit-scrollbar {
+        width: 0;
+        background: transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <header style="display: flex; justify-content: space-between; align-items: center">
+      <h1>MyBlog</h1>
+      {% if user.is_authenticated %}
+      <ul style="list-style: none; display: flex">
+        <li>Hello! {{request.user}}</li>
+        <li><a href="{% url 'logout' %}">LogOut</a></li>
+      </ul>
+      {% else %}
+      <ul style="list-style: none; display: flex">
+        <li><a href="{% url 'login' %}">LogIn</a></li>
+      </ul>
+      {% endif %}
+    </header>
+    {% if "admin_blog" in group %}
+    <div class="create-blog">
+      <form action="{% url 'createCategory' %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create-category" />
+        <button type="submit">CreateCategory</button>
+      </form>
+      <a href="{% url 'viewCategory' %}" style="text-decoration: none;background-color: #eeeeee;color: black;border: 1px solid black;margin: 10px 0;display: inline-block;padding: 2px 4px;border-radius: 2px;">ViewCategory</a>
+      <form action="{% url 'createBlog' %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create-blog" />
+        <button type="submit">CreateBlog</button>
+      </form>
+    </div>
+    {% endif %}
+
+    <div class="container">
+      <div class="container infinite-container">
+        <!-- <div class="blogs"> -->
+        <h1>Blogs</h1>
+        {% for blog in page_obj %}
+            <div class="blog infinite-item" id="{{blog.id}}">
+            <h3>{{blog.title}}</h3>
+            <img
+                src="{{ blog.image.url }}"
+                alt="blogimage"
+                style="width: 300px; height: 300px"
+                class="blogImg"
+            />
+            <p>{{blog.description}}</p>
+            {% if "admin_blog" in groups %}
+            <form action="{% url 'updateBlog' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update-blog" />
+                <input type="hidden" name="record" value="{{ blog.id }}" />
+                <button type="submit">Update</button>
+            </form>
+
+            <form action="{% url 'deleteBlog' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete-blog" />
+                <input type="hidden" name="record" value="{{ blog.id }}" />
+                <button type="submit">Delete</button>
+            </form>
+            {% else %}
+            <form action="{% url 'readMore' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="read-more" />
+                <input type="hidden" name="record" value="{{ blog.id }}" />
+                <button type="submit">ReadMore</button>
+            </form>
+            {% endif %}
+            <button class="shareImg" value="{{blog.image.url}}" onclick="share('{{blog.id}}')">Share</button>
+          </div>
+          {% endfor %}
+        <!-- </div> -->
+      </div>
+
+      <!-- loading component -->
+      <div class="page-load-status">
+        <div class="loader-ellips infinite-scroll-request">
+          <span class="loader-ellips__dot"></span>
+          <span class="loader-ellips__dot"></span>
+          <span class="loader-ellips__dot"></span>
+          <span class="loader-ellips__dot"></span>
+        </div>
+        <p class="infinite-scroll-last">End of content</p>
+        <p class="infinite-scroll-error">No more pages to load</p>
+      </div>
+    </div>
+    <!-- infinite container end -->
+    <!-- test -->
+
+    <div class="pagination" style="display: none">
+      <span class="step-links">
+        {% if page_obj.has_next %}
+        <a
+          href="?page={{ page_obj.next_page_number }}"
+          class="infinite-more-link"
+          >next</a
+        >
+        {% endif %}
+      </span>
+    </div>
+
+    <footer>
+      <h1>MyBlog</h1>
+      <p>all rights reserved</p>
+    </footer>
+    <script>
+      var infi = new InfiniteScroll(".infinite-container", {
+        path: ".infinite-more-link",
+        append: ".infinite-item",
+        history: true,
+        status: ".page-load-status",
+        checkLastPage: true,
+        elementScroll: false,
+        setThreshold: 4000,
+      });
+    </script>
+
+    <script>
+      async function share(recv) {
+        let div = $("#"+recv);
+        let imagesrc = div.children('img').attr('src');
+        let textDiv = div.children('h3').html();
+        let response = await fetch(imagesrc);
+        const blob = await response.blob();
+        const filesArray = [new File([blob], "shareImage.jpg", {type: 'image/jpeg'})];
+        const shareData = {
+          title: textDiv,
+          files: filesArray,
+        }
+        navigator.share(shareData);
+      }
+    </script>
+  </body>
+</html>

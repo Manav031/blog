@@ -1,0 +1,29 @@
+<table border="1">
+    <tr>
+        <th>Categgory</th>
+        <th>Update</th>
+        <th>Delete</th>
+    </tr>
+
+    {% for i in data %}
+        <tr>
+            <td>{{i.category}}</td>
+            <td>
+                <form action="{% url 'updateCategory' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update-category">
+                    <input type="hidden" name="record" value="{{i.blogcategoryid}}">
+                    <button type="submit">Update</button>
+                </form>
+            </td>
+            <td>
+                <form action="{% url 'deleteCategory' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete-category">
+                    <input type="hidden" name="record" value="{{i.blogcategoryid}}">
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+</table>
